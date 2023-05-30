@@ -1,0 +1,106 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <limits>
+#include <stack>
+
+using namespace std;
+
+// weighted adjacency matrix
+vector<vector<int>> graph = {
+    {0, 10, 0, 0, 15, 5},
+    {10, 0, 10, 30, 0, 0},
+    {0, 10, 0, 12, 5, 0},
+    {0, 30, 12, 0, 0, 20},
+    {15, 0, 5, 0, 0, 0},
+    {5, 0, 0, 20, 0, 0}
+};
+
+
+// represent the cities as node in the graph
+struct Node {
+    int index, travel_time;
+    vector<int> path;
+
+    Node(int _index, int _travel_time, vector<int> _path) : index(_index), travel_time(_travel_time), path(_path) {}
+};
+
+// get the minimum travel_time
+struct shortest_travel_time {
+    bool operator()(const Node& n1, const Node& n2) const {
+        bool comparator=n1.travel_time > n2.travel_time ;
+        return comparator ;
+    }
+};
+
+// implement of Dijkstra's algorithm
+void Dijkstra(vector<vector<int>>& graph, int source_city) {
+    int nodes = graph.size();
+    vector<int> travel_time(nodes, numeric_limits<int>::max());
+    travel_time[source_city] = 0;
+
+    priority_queue<Node, vector<Node>, shortest_travel_time>  queue;
+    queue.push(Node(source_city, 0, vector<int>{}));
+
+    vector<int> node_path(nodes, -1); 
+    
+    while (! queue.empty()) {
+        Node current =  queue.top();
+         queue.pop();
+        
+        int node_index = current.index;
+        int node_travel_time = current.travel_time;
+        vector<int> current_path = current.path;
+
+        // Check  neighboring cities and update shortest path
+        for (int i = 0; i < nodes; i++) {
+            if (graph[node_index][i] != 0) {
+                int new_travel_time = node_travel_time + graph[node_index][i];
+                if (new_travel_time < travel_time[i]) {
+                    travel_time[i] = new_travel_time;
+                    node_path[i] = node_index; 
+                    vector<int> new_path = current_path;
+                    new_path.push_back(node_index);
+                     queue.push(Node(i, new_travel_time, new_path));
+                }
+            }
+        }
+    }
+
+    // Print the shortest travel_time 
+    for (int i = 0; i < nodes; i++) {
+        
+        if (i == source_city){
+            continue; 
+        }
+        
+        cout << "Shortest travel time from city "<< source_city<< " to city " << i << " = " << travel_time[i] << endl;
+        
+        // print the shortest path
+        
+        cout << "Shortest path : ";
+        stack<int> pathStack;
+        int currNode = i;
+        while (currNode != -1) {
+            pathStack.push(currNode);
+            currNode = node_path[currNode];
+        }
+        while (!pathStack.empty()) {
+            cout << pathStack.top();
+            pathStack.pop();
+            if (!pathStack.empty())
+                cout << " -> ";
+        }
+        cout << endl << endl;
+    }
+}
+
+int main() {
+   
+    
+    int source_city = 5; // source city
+
+    Dijkstra(graph, source_city);
+
+    return 0;
+}
